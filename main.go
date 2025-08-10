@@ -8,6 +8,7 @@ import (
 	"todoApi/handlers"
 
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -15,12 +16,19 @@ func main() {
 	fx.New(
 		fx.Provide(setupHttpServer), // Provide the SetupHttpServer function
 		fx.Provide(
-			fx.Annotate(handlers.ServeMux,
+			fx.Annotate(
+				handlers.ServeMux,
 				fx.ParamTags(`group:"routes"`),
 			),
 		), // Provide the ServeMux function
 		fx.Provide(
+			AsRoute(handlers.NewHelloHandler),
+			AsRoute(handlers.NewTodoCreateHandler),
 			AsRoute(handlers.NewTodoFetchHandler),
+			//AsRoute(handlers.NewTodoDeleteHandler),
+			//AsRoute(handlers.NewTodoCreateHandler),
+			//AsRoute(handlers.NewTodoFetchSingleHandler),
+			zap.NewExample,
 		),
 		fx.Invoke(func(*http.Server) {}), // Invoke the server to start it
 	).Run()

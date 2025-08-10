@@ -2,9 +2,9 @@ module todoApi/main
 
 go 1.24.5
 
-replace todoApi/handlers => ../goTodoAPI/api/handlers
+replace todoApi/handlers => ./api/handlers
 
-replace todoApi/models => ../goTodoAPI/internal/models
+replace todoApi/models => ./internal/models
 
 require (
 	go.uber.org/fx v1.24.0
@@ -12,6 +12,9 @@ require (
 )
 
 require (
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/spf13/cobra v1.9.1 // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
 	go.uber.org/dig v1.19.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
