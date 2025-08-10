@@ -1,39 +1,62 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
+	"fmt"
+	"net"
+	"net/http"
+	"todoApi/handlers"
 
 	"go.uber.org/fx"
 )
 
-type Todo struct {
-	ID          int    `json:"id"`
-	Title       string `json:"title"`
-	Description string `json:"description,omitempty"`
-	Priority    int    `json:"priority"`
-	Completed   bool   `json:"completed"`
-	CreatedAt   string `json:"created_at"`
-	CompletedAt string `json:"completed_at,omitempty"`
-}
-
-var todos = []Todo{
-	{ID: 1, Title: "Learn Go", Description: "Study the Go programming language", Priority: 1, Completed: false, CreatedAt: "2023-10-01T12:00:00Z"},
-	{ID: 2, Title: "Build a REST API", Description: "Create a RESTful API using Go", Priority: 2, Completed: false, CreatedAt: "2023-10-02T12:00:00Z"},
-	{ID: 3, Title: "Write Tests", Description: "Write unit tests for the API", Priority: 3, Completed: false, CreatedAt: "2023-10-03T12:00:00Z"},
-	{ID: 4, Title: "Deploy Application", Description: "Deploy the Go application to a server", Priority: 4, Completed: false, CreatedAt: "2023-10-04T12:00:00Z"},
-}
-
-func GetListOfTodos(C *gin.Context) {
-	C.JSON(200, todos)
-}
-
 func main() {
 
-	fx.New().Run()
+	fx.New(
+		fx.Provide(setupHttpServer), // Provide the SetupHttpServer function
+		fx.Provide(
+			fx.Annotate(handlers.ServeMux,
+				fx.ParamTags(`group:"routes"`),
+			),
+		), // Provide the ServeMux function
+		fx.Provide(
+			AsRoute(handlers.NewTodoFetchHandler),
+		),
+		fx.Invoke(func(*http.Server) {}), // Invoke the server to start it
+	).Run()
 
-	//router := gin.Default()
+}
 
-	//router.GET("/todos", GetListOfTodos)
+// setupHttpServer creates a new HTTP handler for the Todo API.
+func setupHttpServer(lc fx.Lifecycle, mux *http.ServeMux) *http.Server {
+	server := &http.Server{
+		Addr: ":8080", Handler: mux,
+	}
 
-	//router.Run(":8080")
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			ln, err := net.Listen("tcp", server.Addr)
+			if err != nil {
+				return err
+			}
+			fmt.Println("Starting HTTP server on", server.Addr)
+			go server.Serve(ln)
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			fmt.Println("Stopping HTTP server...")
+			return server.Shutdown(ctx)
+		},
+	})
+
+	return server
+}
+
+// Annotates the given contructor to state that it provides and API route
+func AsRoute(f any) any {
+	return fx.Annotate(
+		f,
+		fx.As(new(handlers.Route)),
+		fx.ResultTags(`group:"routes"`),
+	)
 }
