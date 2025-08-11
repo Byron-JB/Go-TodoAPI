@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"todoApi/db"
 	"todoApi/handlers"
 
 	"go.uber.org/fx"
@@ -22,17 +23,15 @@ func main() {
 			),
 		), // Provide the ServeMux function
 		fx.Provide(
-			AsRoute(handlers.NewHelloHandler),
 			AsRoute(handlers.NewTodoCreateHandler),
 			AsRoute(handlers.NewTodoFetchHandler),
-			//AsRoute(handlers.NewTodoDeleteHandler),
-			//AsRoute(handlers.NewTodoCreateHandler),
-			//AsRoute(handlers.NewTodoFetchSingleHandler),
+			AsRoute(handlers.NewTodoDeleteHandler),
+			AsRoute(handlers.NewTodoUpdateHandler),
 			zap.NewExample,
 		),
 		fx.Invoke(func(*http.Server) {}), // Invoke the server to start it
+		fx.Invoke(db.InitDB),
 	).Run()
-
 }
 
 // setupHttpServer creates a new HTTP handler for the Todo API.

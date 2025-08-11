@@ -1,0 +1,4 @@
+### GET request to example server
+DELETE http://0.0.0.0:8080/delete?id=3
+
+###
