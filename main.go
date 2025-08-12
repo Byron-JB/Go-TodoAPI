@@ -74,7 +74,7 @@ func setupHttpServer(lc fx.Lifecycle, mux *http.ServeMux) *http.Server {
 	return server
 }
 
-// Annotates the given contructor to state that it provides and API route
+// AsRoute Annotates the given contructor to state that it provides and API route
 func AsRoute(f any) any {
 	return fx.Annotate(
 		f,
