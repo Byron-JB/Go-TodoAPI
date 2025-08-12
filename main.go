@@ -15,13 +15,23 @@ import (
 func main() {
 
 	fx.New(
+		fx.Module("db",
+			fx.Provide(
+				fx.Annotate(
+					db.NewDatabase,
+					fx.As(new(db.Database)),
+				),
+			),
+		),
 		fx.Provide(setupHttpServer), // Provide the SetupHttpServer function
 		fx.Provide(
+			handlers.NewServer,
 			fx.Annotate(
 				handlers.ServeMux,
 				fx.ParamTags(`group:"routes"`),
 			),
-		), // Provide the ServeMux function
+		),
+		// Provide the ServeMux function
 		fx.Provide(
 			AsRoute(handlers.NewTodoCreateHandler),
 			AsRoute(handlers.NewTodoFetchHandler),
@@ -30,7 +40,7 @@ func main() {
 			zap.NewExample,
 		),
 		fx.Invoke(func(*http.Server) {}), // Invoke the server to start it
-		fx.Invoke(db.InitDB),
+		//fx.Invoke(db.InitDB),
 	).Run()
 }
 
@@ -47,7 +57,12 @@ func setupHttpServer(lc fx.Lifecycle, mux *http.ServeMux) *http.Server {
 				return err
 			}
 			fmt.Println("Starting HTTP server on", server.Addr)
-			go server.Serve(ln)
+			go func() {
+				err := server.Serve(ln)
+				if err != nil {
+
+				}
+			}()
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
@@ -63,7 +78,9 @@ func setupHttpServer(lc fx.Lifecycle, mux *http.ServeMux) *http.Server {
 func AsRoute(f any) any {
 	return fx.Annotate(
 		f,
-		fx.As(new(handlers.Route)),
+		fx.As(
+			new(handlers.Route),
+		),
 		fx.ResultTags(`group:"routes"`),
 	)
 }

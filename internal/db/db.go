@@ -5,8 +5,6 @@ import (
 	"os"
 	"todoApi/models"
 
-	"log"
-
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -17,9 +15,14 @@ var (
 	user     string
 	password string
 	dbname   string
+	dsn      string
 )
 
-var dbConnection *gorm.DB
+//var dbConnection *gorm.DB
+
+type GormDatabase struct {
+	dbConnection gorm.DB
+}
 
 // Gets the DB connection details from the .env details
 func getDbConnectionDetails() {
@@ -30,15 +33,7 @@ func getDbConnectionDetails() {
 	host = os.Getenv("DB_HOST")
 	port = os.Getenv("DB_PORT")
 
-}
-
-// InitDB Creates the DB connection
-func InitDB() {
-	var err error
-
-	getDbConnectionDetails()
-
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
+	dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
 		user,
 		password,
 		host,
@@ -46,40 +41,27 @@ func InitDB() {
 		dbname,
 	)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("Error opening DB: %v", err)
-	}
-
-	err = db.AutoMigrate(&models.TblTodo{})
-
-	// Creates the table if it doesn't exist'
-	if err != nil {
-		log.Fatal("unable to migrate data", err)
-	}
-
-	fmt.Println("✅ Connected to MySQL")
 }
 
-func OpenDbConnection() error {
-	var err error
+// Database interface
+type Database interface {
+	SaveTodosToDb(todos []models.TodoDto) ([]models.TodoDto, error)
+	FetchTodosFromDb(skip int, take int) ([]models.TodoDto, error)
+	DeleteTodoFromDb(id int) error
+	UpdateTodosInDB(todos []models.TodoDto) ([]models.TodoDto, error)
+}
 
+// NewDatabase creates a new database instance
+func NewDatabase() (*GormDatabase, error) {
 	getDbConnectionDetails()
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
-		user,
-		password,
-		host,
-		port,
-		dbname,
-	)
-
-	dbConnection, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
-
+	connection, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Error opening DB: %v", err)
-		return err
+		return nil, err
 	}
-
-	return nil
+	err = connection.AutoMigrate(&models.TblTodo{})
+	if err != nil {
+		return nil, err
+	}
+	return &GormDatabase{dbConnection: *connection}, nil
 }

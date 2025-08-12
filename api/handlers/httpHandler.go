@@ -2,7 +2,16 @@ package handlers
 
 import (
 	"net/http"
+	"todoApi/db"
 )
+
+type Server struct {
+	database db.Database
+}
+
+func NewServer(db db.Database) *Server {
+	return &Server{database: db}
+}
 
 // The Route interface will handle HTTP requests and define a pattern for the route.
 type Route interface {

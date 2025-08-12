@@ -4,14 +4,9 @@ import (
 	models "todoApi/models"
 )
 
-func UpdateTodosInDB(todos []models.TodoDto) ([]models.TodoDto, error) {
-	err := OpenDbConnection()
+func (g *GormDatabase) UpdateTodosInDB(todos []models.TodoDto) ([]models.TodoDto, error) {
 
 	var updatedTodos []models.TodoDto
-
-	if err != nil {
-		return []models.TodoDto{}, err
-	}
 
 	for _, todoFromRequest := range todos {
 
@@ -21,7 +16,7 @@ func UpdateTodosInDB(todos []models.TodoDto) ([]models.TodoDto, error) {
 			return []models.TodoDto{}, err
 		}
 
-		dbConnection.Save(&mappedTodo)
+		g.dbConnection.Save(&mappedTodo)
 
 		updateTodo := mapTodoDtoFromDBObject(&mappedTodo)
 
