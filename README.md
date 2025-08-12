@@ -57,11 +57,15 @@ docker compose logs -f
 docker compose logs -f <service-name>
 ```
 
-
 ### Stop and remove services
 ```shell script
 # Bash
 docker compose down
+```
+### Clean reset
+```shell script
+# Bash
+docker compose down -v --rmi local
 ```
 
 Optional cleanup:
@@ -135,34 +139,3 @@ curl -i -X POST http://localhost:<PORT>/todos \
   -H "Content-Type: application/json" \
   -d '[{"title":"Sample","priority":1,"due_date":"2025-12-31"}]'
 ```
-
-
-## Environment variables
-If you use an .env file:
-```shell script
-# Bash
-cp dev-resources/.env.example .env
-# Edit .env and fill values like:
-# APP_PORT=<PORT>
-# DB_PASSWORD=<PASSWORD>
-```
-
-Do not commit real secrets; keep placeholders like <PASSWORD>.
-
-## Common issues
-- Port conflicts: Change the host port mapping in docker-compose.yml or stop the process using it.
-- Changes not reflected: Rebuild with docker compose build (use --no-cache if needed), then docker compose up -d.
-- Stale data: Reset volumes with docker compose down -v (destructive).
-- Service depends_on: Ensure proper health checks so services wait for their dependencies.
-
-## Clean reset
-```shell script
-# Bash
-docker compose down -v --rmi local
-```
-
-
-## Suggested dev loop
-- App code changes only: docker compose up -d, then re-run requests from .http files.
-- Dependency/Dockerfile changes: docker compose build && docker compose up -d.
-- Data reset needed: docker compose down -v && docker compose up -d, then re-seed using the .http requests.

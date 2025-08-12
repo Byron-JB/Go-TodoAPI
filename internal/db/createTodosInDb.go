@@ -4,6 +4,7 @@ import (
 	"todoApi/models"
 )
 
+// SaveTodosToDb Save a list of todos to the database
 func (g *GormDatabase) SaveTodosToDb(todos []models.TodoDto) ([]models.TodoDto, error) {
 
 	var createdTodos []models.TodoDto

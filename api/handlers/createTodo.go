@@ -30,6 +30,7 @@ func (h *TodoCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if the server is initialized
 	if h.s == nil || h.s.database == nil {
 		http.Error(w, "Server not initialized", http.StatusInternalServerError)
 		return
